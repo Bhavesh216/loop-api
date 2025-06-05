@@ -66,5 +66,6 @@ It allows clients to submit ingestion requests with a list of IDs and priority, 
 
 - Python 3.9+ installed
 - `pip` package manager
-
+![image](https://github.com/user-attachments/assets/dd363b3c-883e-4237-8f47-d46cb0357942)
+![image](https://github.com/user-attachments/assets/6f1fa27e-1fc5-45a2-831f-91ac8cc5b482)
 
