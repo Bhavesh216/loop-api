@@ -9,7 +9,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 
 3. Visit:
-- Home: http://127.0.0.1:8000/
+- Home:http://localhost:8000/
 - Swagger Docs: http://localhost:8000/docs
 - URL: https://first-loop-api.onrender.com/
 
@@ -36,3 +36,49 @@ POST /ingest
   "ids": [1, 2, 3, 4, 5],
   "priority": "MEDIUM"
 }
+
+# Data Ingestion API System
+
+## Overview
+
+This project implements a simple asynchronous data ingestion API system using **FastAPI**.  
+It allows clients to submit ingestion requests with a list of IDs and priority, processes these requests in batches asynchronously with rate limiting and priority handling, and exposes a status endpoint to track progress.
+
+---
+
+## Features
+
+- **POST /ingest**: Accepts ingestion requests containing a list of IDs and a priority (HIGH, MEDIUM, LOW).  
+- IDs are split into batches of 3 for processing.
+- **Batch processing** is asynchronous, simulates external API calls with delay, and respects a rate limit of **1 batch per 5 seconds**.
+- Requests with higher priority batches are processed first.
+- **GET /status/{ingestion_id}**: Returns the overall ingestion status and details of each batch's status.  
+- In-memory storage for ingestions and batches (suitable for demonstration and testing).
+
+---
+
+## Design Choices
+
+- **FastAPI Framework**: Selected for its speed, async support, and ease of building RESTful APIs.  
+- **Asyncio + Heap Queue**: Used `asyncio` for asynchronous batch processing and `heapq` as a priority queue, prioritizing by (priority level, creation time, tie-breaker).  
+- **Batching**: Requests are split into batches of size 3 as per requirements.  
+- **Rate Limiting**: Implemented via `asyncio.sleep(5)` between batches to simulate external API rate limit of one batch per 5 seconds.
+- **In-Memory Persistence**: Stored ingestion and batch metadata in Python dictionaries for simplicity.  
+- **Thread-safe Async Lock**: Used `asyncio.Lock` to guard shared data structures ensuring safe concurrent access in async environment.
+- **Unique IDs**: Used UUID4 to generate unique ingestion and batch IDs.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.9+ installed
+- `pip` package manager
+
+### Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/data-ingestion-api.git
+   cd data-ingestion-api
