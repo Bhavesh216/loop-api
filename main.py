@@ -10,41 +10,30 @@ import heapq
 
 app = FastAPI()
 
-# -------------------------------
-# Priority Enum
-# -------------------------------
+
 class Priority(str, Enum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
 
-# -------------------------------
-# Request Model
-# -------------------------------
+
 class IngestRequest(BaseModel):
     ids: List[int]
     priority: Priority
 
-# -------------------------------
-# Global In-Memory Stores
-# -------------------------------
-ingestions: Dict[str, dict] = {}         # ingestion_id → metadata
-batch_store: Dict[str, dict] = {}        # batch_id → batch info
-processing_queue = []                    # Heap queue: (priority, time, tiebreaker, batch)
 
-# Lock for thread-safe access
+ingestions: Dict[str, dict] = {}
+batch_store: Dict[str, dict] = {}
+processing_queue = []
+
 lock = threading.Lock()
 
-# Priority level mapping
 priority_map = {
     "HIGH": 1,
     "MEDIUM": 2,
     "LOW": 3
 }
 
-# -------------------------------
-# Async Batch Processor
-# -------------------------------
 async def process_batches():
     while True:
         await asyncio.sleep(0.1)
@@ -53,20 +42,15 @@ async def process_batches():
             if not processing_queue:
                 continue
 
-            # Always pop (priority, time, tie_id, batch)
             _, _, _, batch = heapq.heappop(processing_queue)
 
         batch_id = batch["batch_id"]
         batch_store[batch_id]["status"] = "triggered"
 
-        await asyncio.sleep(5)  # Simulate 5s rate-limited processing
+        await asyncio.sleep(5)
 
-        # Simulate API call and mark as completed
         batch_store[batch_id]["status"] = "completed"
 
-# -------------------------------
-# Start Background Worker Thread
-# -------------------------------
 def start_worker():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -74,15 +58,11 @@ def start_worker():
 
 threading.Thread(target=start_worker, daemon=True).start()
 
-# -------------------------------
-# POST /ingest
-# -------------------------------
 @app.post("/ingest")
 def ingest(request: IngestRequest):
     ingestion_id = str(uuid.uuid4())
     created_time = time.time()
 
-    # Split into batches of 3
     ids = request.ids
     batches = [ids[i:i + 3] for i in range(0, len(ids), 3)]
     batch_ids = []
@@ -99,17 +79,15 @@ def ingest(request: IngestRequest):
 
             batch_store[batch_id] = batch
 
-            # ✅ FIX: Add tie-breaker UUID for safe comparison
             heapq.heappush(processing_queue, (
                 priority_map[request.priority],
                 created_time,
-                str(uuid.uuid4()),  # tie-breaker
+                str(uuid.uuid4()),
                 batch
             ))
 
             batch_ids.append(batch_id)
 
-        # Store ingestion metadata
         ingestions[ingestion_id] = {
             "priority": request.priority,
             "created_time": created_time,
@@ -118,9 +96,6 @@ def ingest(request: IngestRequest):
 
     return {"ingestion_id": ingestion_id}
 
-# -------------------------------
-# GET /status/{ingestion_id}
-# -------------------------------
 @app.get("/status/{ingestion_id}")
 def get_status(ingestion_id: str):
     if ingestion_id not in ingestions:
