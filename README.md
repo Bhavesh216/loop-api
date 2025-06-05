@@ -28,15 +28,6 @@ This is a FastAPI-based microservice for data ingestion with priority queuing, b
 - High priority jobs are processed before low priority ones
 - Returns a unique `ingestion_id`
 
-**Sample Request:**
-
-```json
-POST /ingest
-{
-  "ids": [1, 2, 3, 4, 5],
-  "priority": "MEDIUM"
-}
-
 # Data Ingestion API System
 
 ## Overview
@@ -76,9 +67,4 @@ It allows clients to submit ingestion requests with a list of IDs and priority, 
 - Python 3.9+ installed
 - `pip` package manager
 
-### Installation
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/data-ingestion-api.git
-   cd data-ingestion-api
